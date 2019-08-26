@@ -28,9 +28,7 @@ app = Flask(__name__)
 # 3. Define what to do when a user hits the index route
 @app.route("/")
 def index():
-    print("All index listed below...")
-    return ("/api/v1.0/precipitation", "/api/v1.0/stations", "/api/v1.0/tobs", "/api/v1.0/<start>", "/api/v1.0/<start>/<end>")
-
+    return(f"All index listed below...,/api/v1.0/precipitation,/api/v1.0/stations,/api/v1.0/tobs,/api/v1.0/<start>,/api/v1.0/<start>/<end>")
 
 # #4. Define what to do when a user hits the /about route
 @app.route("/api/v1.0/precipitation")
@@ -57,25 +55,34 @@ def precipitation():
        
     return jsonify(data_list)
 
-#@app.route("/api/v1.0/stations")
-##def about():
-   ## print("Server received request for 'About' page...")
-   # return "Welcome to my 'About' page!"
+@app.route("/api/v1.0/stations")
+def stations():
+   print("Tobs")
+   busy = [Measurement.station, func.count(Measurement.station)]
+   station_busy = session.query(*busy).\
+   group_by(Measurement.station).all()
+    
+   return jsonify(station_busy)
 
 
 
-#@app.route("/api/v1.0/tobs")
-#def about():
-    ###print("Server received request for 'About' page...")
-   # return "Welcome to my 'About' page!"
+@app.route("/api/v1.0/tobs")
+def tobs():
+    hist = [Measurement.station, (Measurement.tobs)]
+    rain_hist = session.query(*hist).\
+    filter(func.strftime("%Y-%m-%d", Measurement.date) >= dt.date(2017, 8, 18) - dt.timedelta(days=365)  ).\
+    filter(Measurement.station == 'USC00519281').all()
 
+    return jsonify(rain_hist)
 
-#@app.route("@app.route("/api/v1.0/<start> and /api/v1.0/<start>/<end>")
-##def about():
-    ##print("Server received request for 'About' page...")
-   # return "Welcome to my 'About' page!"")
+@app.route("/api/v1.0/<start>")
+def start():
+    temp = [Measurement.station, func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs) ]
 
+    temp_metric = session.query(*temp).\
+    group_by(Measurement.station).all()
 
+    return jsonify(temp_metric)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+        app.run(debug=True)
